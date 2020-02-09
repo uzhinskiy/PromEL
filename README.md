@@ -1,6 +1,6 @@
 # PromEL #
 
-PromEL - A prometheus remote storage adapter for ElasticSearch
+PromEL - A prometheus remote storage adapter into ElasticSearch
 
 ## INTRODUCTION ##
 

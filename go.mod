@@ -1,10 +1,10 @@
 module github.com/uzhinskiy/PromEL
 
-//replace (
-//	gitlab.insitu.co.il/boris.uzhinskiy/PromEL/config => ./config
-//	gitlab.insitu.co.il/boris.uzhinskiy/PromEL/driver => ./driver
-//	gitlab.insitu.co.il/boris.uzhinskiy/PromEL/es => ./es
-//)
+replace (
+	github.com/uzhinskiy/PromEL/config => ./config
+	github.com/uzhinskiy/PromEL/driver => ./driver
+	github.com/uzhinskiy/PromEL/es => ./es
+)
 
 require (
 	github.com/gogo/protobuf v1.3.1 // indirect
