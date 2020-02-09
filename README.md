@@ -7,6 +7,8 @@ PromEL - A prometheus remote storage adapter into ElasticSearch
 
 ## INSTALL ##
 
+    $ git clone https://github.com/uzhinskiy/PromEL.git
+    $ make
 
 ## USAGE ##
 
