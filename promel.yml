@@ -1,0 +1,32 @@
+app:
+  debug: true
+
+metric:
+  bind: 0.0.0.0
+  port: 9999
+
+input:
+  bind: 0.0.0.0
+  port: 7201
+
+elastic:
+  hosts:
+    - http://10.220.1.140:9200/
+    - http://10.220.1.155:9200/
+    - http://10.220.1.154:9200/
+  index: "promel"
+  replicas: 1 # number of replics for index in HOT-phase
+  shards: 4 # number of shards for index in HOT-phase
+  ilm:
+    hot: 8h # Data retention time in HOT-phase
+    #warm: 1d # Data retention time in WARM-phase
+    cold: 3d # Data retention time in COLD-phase
+  bulk:
+    name: "promelworker"
+    size: 1000
+    workers: 2
+
+logging:
+  enable: true  # for standalone - set this to TRUE, for docker - set to FALSE
+  path: /var/log/promel/promel.log
+  size: 10485760 #maximum size of file (bytes)
