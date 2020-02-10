@@ -17,6 +17,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/uzhinskiy/PromEL/config"
 	"github.com/uzhinskiy/PromEL/es"
@@ -26,6 +28,25 @@ type Driver struct {
 	esclient *es.ESClient
 	conf     config.Config
 }
+
+var (
+	write_bad_request = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "promel_write_bad_request_total",
+		Help: "The total number of bad requests for write",
+	})
+	write_snappy_corrupted = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "promel_write_snappy_corrupted_total",
+		Help: "The total number of corrupted snappy packets",
+	})
+	write_protobuf_invalid = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "promel_write_protobuf_invalid_total",
+		Help: "The total number of invalid protobuf packets",
+	})
+	write_elastic_failed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "promel_write_elastic_failed_total",
+		Help: "The total number of failed requests to Elastic",
+	})
+)
 
 func Run(cnf config.Config) error {
 	esc, err := es.NewESClient(cnf)

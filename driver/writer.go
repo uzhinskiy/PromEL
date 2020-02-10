@@ -38,6 +38,7 @@ func (drv *Driver) appWrite(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Service Unavailable", http.StatusServiceUnavailable)
 		log.Println(r.RemoteAddr, "\t", r.Method, "\t", r.URL.Path, "\t", http.StatusServiceUnavailable, "\t", "Invalid request method ", "\t", r.UserAgent())
+		write_bad_request.Inc()
 		return
 	}
 
@@ -45,6 +46,7 @@ func (drv *Driver) appWrite(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Read error: ", err.Error(), "Content length is: ", r.Header["Content-Length"])
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		write_bad_request.Inc()
 		return
 	}
 
@@ -52,12 +54,14 @@ func (drv *Driver) appWrite(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Decode error: ", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		write_snappy_corrupted.Inc()
 		return
 	}
 
 	if err := proto.Unmarshal(reqBuf, &req); err != nil {
 		log.Println("Unmarshal error: ", err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		write_protobuf_invalid.Inc()
 		return
 	}
 
@@ -71,6 +75,7 @@ func (drv *Driver) appWrite(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("Indexing into Elastic is failed with: %s\n", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		write_elastic_failed.Inc()
 		return
 	}
 
