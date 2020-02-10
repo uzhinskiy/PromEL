@@ -63,9 +63,11 @@ func Run(cnf config.Config) error {
 		return err
 	} else {
 		log.Println("Bootstrap: BulkProcessor is ready")
-	}
 
+	}
 	defer esc.Close()
+
+	go esc.Statistics()
 
 	drv := Driver{}
 	drv.esclient = esc

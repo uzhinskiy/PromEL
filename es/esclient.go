@@ -18,12 +18,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	//"log"
 
 	"math"
 	"strings"
 	"time"
 
 	"github.com/olivere/elastic/v7"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/prompb"
 	cnf "github.com/uzhinskiy/PromEL/config"
@@ -43,6 +46,21 @@ type promSample struct {
 	TimeStamp int64        `json:"timestamp"`
 	Datetime  string       `json:"datetime"`
 }
+
+var (
+	promel_flush_invoked_total = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "promel_flush_invoked_total",
+		Help: "Number of times ES-Bulk's flush has been invoked",
+	})
+	/*promel_docs_indexed_speed = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "promel_docs_indexed_speed",
+		Help: "Number of requests indexed",
+	})*/
+	promel_docs_indexed_failed_total = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: "promel_docs_indexed_failed_total",
+		Help: "Number of requests reported as failed",
+	})
+)
 
 func NewESClient(in_cnf cnf.Config) (*ESClient, error) {
 	esc := &ESClient{}
@@ -78,7 +96,8 @@ func (esc *ESClient) NewBulkService() error {
 		Name(esc.config.Bulk.Name).
 		Workers(esc.config.Bulk.Workers).
 		BulkActions(esc.config.Bulk.Size).
-		FlushInterval(5 * time.Second). // commit every 30s
+		FlushInterval(5 * time.Second). // commit every 5s
+		Stats(true).                    // enable collecting stats
 		Do(context.Background())
 	if err != nil {
 		return errors.New("Setting up BulkProcessor failed with: " + err.Error())
@@ -93,6 +112,22 @@ func (esc *ESClient) Stop() {
 
 func (esc *ESClient) Close() error {
 	return esc.bps.Close()
+}
+
+func (esc *ESClient) Statistics() {
+	for {
+		stats := esc.bps.Stats()
+
+		promel_flush_invoked_total.Add(float64(stats.Flushed))
+		//promel_docs_indexed_speed.Set(float64(stats.Indexed) / 10)
+		promel_docs_indexed_failed_total.Set(float64(stats.Failed))
+
+		/*for i, w := range stats.Workers {
+			log.Printf("Worker %d: Number of requests queued: %d\n", i, w.Queued)
+			log.Printf("           Last response time       : %v\n", w.LastDuration)
+		}*/
+		time.Sleep(10 * time.Second)
+	}
 }
 
 func (esc *ESClient) Insert(req prompb.WriteRequest) error {
