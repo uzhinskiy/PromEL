@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/uzhinskiy/PromEL/config"
 	"github.com/uzhinskiy/PromEL/es"
 )
@@ -52,7 +53,16 @@ func Run(cnf config.Config) error {
 	r1 := http.NewServeMux()
 	r1.HandleFunc("/write", drv.appWrite)
 	r1.HandleFunc("/read", drv.appRead)
-	return http.ListenAndServe(cnf.Input.Bind+":"+cnf.Input.Port, r1)
+
+	r2 := http.NewServeMux()
+	r2.Handle("/metrics", promhttp.Handler())
+	go func() {
+		log.Fatal("Bootstrap: external http listener failed with - ", http.ListenAndServe(cnf.Input.Bind+":"+cnf.Input.Port, r1))
+	}()
+	go func() {
+		log.Fatal("Bootstrap: internal http listener failed with - ", http.ListenAndServe(cnf.Metric.Bind+":"+cnf.Metric.Port, r2))
+	}()
+	select {}
 
 }
 
