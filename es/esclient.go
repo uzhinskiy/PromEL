@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	//"log"
 
 	"math"
 	"strings"
@@ -52,10 +51,10 @@ var (
 		Name: "promel_flush_invoked_total",
 		Help: "Number of times ES-Bulk's flush has been invoked",
 	})
-	/*promel_docs_indexed_speed = promauto.NewGauge(prometheus.GaugeOpts{
+	promel_docs_indexed_speed = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "promel_docs_indexed_speed",
 		Help: "Number of requests indexed",
-	})*/
+	})
 	promel_docs_indexed_failed_total = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "promel_docs_indexed_failed_total",
 		Help: "Number of requests reported as failed",
@@ -115,18 +114,24 @@ func (esc *ESClient) Close() error {
 }
 
 func (esc *ESClient) Statistics() {
+	var t float64
+	var c float64
 	for {
 		stats := esc.bps.Stats()
 
 		promel_flush_invoked_total.Add(float64(stats.Flushed))
-		//promel_docs_indexed_speed.Set(float64(stats.Indexed) / 10)
+
+		c = float64(stats.Indexed/5) - t
+		promel_docs_indexed_speed.Set(c)
+		t = float64(stats.Indexed / 5)
 		promel_docs_indexed_failed_total.Set(float64(stats.Failed))
 
 		/*for i, w := range stats.Workers {
 			log.Printf("Worker %d: Number of requests queued: %d\n", i, w.Queued)
 			log.Printf("           Last response time       : %v\n", w.LastDuration)
 		}*/
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
+
 	}
 }
 
