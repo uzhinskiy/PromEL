@@ -29,11 +29,11 @@ Requires Elasticsearch v7.0 or greater.
 
     $ git clone https://github.com/uzhinskiy/PromEL.git promel
     $ cd promel
+    $ edit /scripts/promel-docker.yml (replace elk0X-ip with your actual IPs of elastic-nodes)
     $ docker build -t promel -f scripts/Dockerfile .
-    $ docker run -t --name promel promel
+    $ docker run -t -d -p 0.0.0.0:9090:9090 -p 0.0.0.0:9091:9091 --name promel-app promel
 
 #### Tuning Linux kernel ####
-
 
     $ sudo nano /etc/sysctl.conf
      net.ipv4.tcp_keepalive_time = 300
