@@ -17,7 +17,7 @@ LABEL maintainer="Uzhinskiy Boris <boris.ujinsky@gmail.com>"
 EXPOSE 9090/tcp 9091/tcp
 
 COPY --from=builder /go/src/promel/build/ /usr/local/bin/
-COPY --from=builder /go/src/promel/scripts/promel-docker.yml /etc/promel.yml
+COPY --from=builder /go/src/promel/scripts/promel-docker.yml /etc/promel/promel.yml
 
 ENTRYPOINT [ "/usr/local/bin/promel" ]
 CMD [ "-config", "/etc/promel/promel.yml" ]
