@@ -28,7 +28,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/common/model"
 	"github.com/prometheus/prometheus/prompb"
-	cnf "github.com/uzhinskiy/PromEL/config"
+	cnf "github.com/uzhinskiy/PromEL/modules/config"
 )
 
 type ESClient struct {

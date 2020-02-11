@@ -20,8 +20,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/uzhinskiy/PromEL/config"
-	"github.com/uzhinskiy/PromEL/es"
+	"github.com/uzhinskiy/PromEL/modules/config"
+	"github.com/uzhinskiy/PromEL/modules/es"
 )
 
 type Driver struct {

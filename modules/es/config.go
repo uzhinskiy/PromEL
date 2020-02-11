@@ -14,7 +14,7 @@
 package es
 
 import (
-	cnf "github.com/uzhinskiy/PromEL/config"
+	cnf "github.com/uzhinskiy/PromEL/modules/config"
 )
 
 type esconf struct {
