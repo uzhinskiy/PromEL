@@ -179,17 +179,7 @@ func (esc *ESClient) Select(q *prompb.Query) (*elastic.SearchHits, error) {
 	if err != nil {
 		return nil, err
 	}
-	/*
-		if main.config.App.Debug {
-			builder := elastic.NewSearchSource().Query(query).FetchSourceContext(fsc).Size(1000)
-			src, err := builder.Source()
-			if err != nil {
-				return nil, err
-			}
-			j, _ := json.MarshalIndent(src, "", "  ")
-			log.Printf("Read request to E: %s\n", j)
-		}
-	*/
+
 	if searchResult.TotalHits() > 0 {
 		return searchResult.Hits, nil
 	} else {

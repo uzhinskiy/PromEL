@@ -1,8 +1,9 @@
-# PromEL #
-
-PromEL - A prometheus remote storage adapter into ElasticSearch
+# PromEL - Elasticsearch Prometheus Adapter #
 
 ## INTRODUCTION ##
+This is an adapter that accepts Prometheus remote read/write requests, and sends them on to Elasticsearch. This allows using Elasticsearch as long term storage for Prometheus.
+
+Requires Elasticsearch v7.0 or greater.
 
 
 ## INSTALL ##
