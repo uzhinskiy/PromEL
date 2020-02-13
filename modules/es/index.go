@@ -15,7 +15,6 @@ package es
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -119,24 +118,13 @@ type ilmPolicy struct {
 func ilmpolicy(index, hot, warm, cold string) ilmPolicy {
 	something := ilmPolicy{}
 
-	if hot != "0" {
-		something.Policy.Phases.Hot.MinAge = "0ms"
-		something.Policy.Phases.Hot.Actions.Rollover.MaxAge = hot
-		something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
-	} else {
-		something.Policy.Phases.Hot.MinAge = "0ms"
-		something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
-	}
-	if warm != "0" {
-		something.Policy.Phases.Warm.MinAge = hot
-	}
+	something.Policy.Phases.Hot.MinAge = "0ms"
+	something.Policy.Phases.Hot.Actions.Rollover.MaxAge = hot
+	something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
 	something.Policy.Phases.Cold.MinAge = hot
 	something.Policy.Phases.Cold.Actions.Allocate.NumberOfReplicas = 0
 	something.Policy.Phases.Cold.Actions.Allocate.Require.BoxType = "cold"
 	something.Policy.Phases.Delete.MinAge = cold
-
-	j, _ := json.MarshalIndent(something, "", "    ")
-	fmt.Printf("%s\n", j)
 
 	return something
 }
