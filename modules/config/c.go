@@ -89,7 +89,7 @@ func Parse(f string) Config {
 	}
 
 	if c.Output.Shards == 0 {
-		c.Output.Shards = 4
+		c.Output.Shards = 2
 	}
 
 	if c.Output.Bulk.Size == 0 {

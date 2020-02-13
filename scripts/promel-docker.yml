@@ -12,15 +12,10 @@ input:
 elastic:
   hosts:
     - http://elk01-ip:9200/
-    - http://elk0X-ip:9200/	
+    - http://elk0X-ip:9200/
   index: "promel"
   replicas: 1
-  shards: 4
-  ilm:
-    enable: true
-    hot: 8h
-    warm: 0
-    cold: 3d
+  shards: 2
   bulk:
     size: 1000
     flush: 5

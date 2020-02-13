@@ -137,7 +137,6 @@ func (esc *ESClient) SetupIndex(c esconf) error {
 	}
 	exists := grepIndexName(indices, c.Index)
 	if !exists {
-		fmt.Println("First start!", c.Ilm.Enable)
 		if c.Ilm.Enable {
 			ilm := ilmpolicy(c.Index, c.Ilm.Hot, c.Ilm.Warm, c.Ilm.Cold)
 
