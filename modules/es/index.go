@@ -15,6 +15,7 @@ package es
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"regexp"
 
@@ -26,8 +27,8 @@ type indexTemplate struct {
 	Settings      struct {
 		Shards                      int    `json:"number_of_shards"`
 		Replicas                    int    `json:"number_of_replicas"`
-		IndexLifecycleName          string `json:"index.lifecycle.name"`
-		IndexLifecycleRolloverAlias string `json:"index.lifecycle.rollover_alias"`
+		IndexLifecycleName          string `json:"index.lifecycle.name,omitempty"`
+		IndexLifecycleRolloverAlias string `json:"index.lifecycle.rollover_alias,omitempty"`
 	} `json:"settings"`
 	Mappings struct {
 		Properties struct {
@@ -44,14 +45,16 @@ type indexTemplate struct {
 	} `json:"mappings"`
 }
 
-func indextemplate(index string, shards, replicas int) indexTemplate {
+func indextemplate(index string, shards, replicas int, ilm bool) indexTemplate {
 	something := indexTemplate{}
 
 	something.IndexPatterns = []string{fmt.Sprintf("%s-*", index)}
 	something.Settings.Shards = shards
 	something.Settings.Replicas = replicas
-	something.Settings.IndexLifecycleName = fmt.Sprintf("%s-ilm-policy", index)
-	something.Settings.IndexLifecycleRolloverAlias = index
+	if ilm {
+		something.Settings.IndexLifecycleName = fmt.Sprintf("%s-ilm-policy", index)
+		something.Settings.IndexLifecycleRolloverAlias = index
+	}
 	something.Mappings.Properties.Value.Type = "long"
 	something.Mappings.Properties.Timestamp.Type = "long"
 	something.Mappings.Properties.Datetime.Type = "date"
@@ -68,8 +71,25 @@ type ilmPolicy struct {
 					Rollover struct {
 						MaxAge string `json:"max_age"`
 					} `json:"rollover"`
+					SetPriority struct {
+						Priority int `json:"priority"`
+					} `json:"set_priority"`
 				} `json:"actions"`
-			} `json:"hot"`
+			} `json:"hot,omitempty"`
+			Warm struct {
+				MinAge  string `json:"min_age"`
+				Actions struct {
+					Allocate struct {
+						NumberOfReplicas int `json:"number_of_replicas"`
+						Require          struct {
+							BoxType string `json:"box_type"`
+						} `json:"require"`
+					} `json:"allocate"`
+					Forcemerge struct {
+						MaxNumSegments int `json:"max_num_segments"`
+					} `json:"forcemerge"`
+				} `json:"actions"`
+			} `json:"Warm,omitempty"`
 			Cold struct {
 				MinAge  string `json:"min_age"`
 				Actions struct {
@@ -84,7 +104,7 @@ type ilmPolicy struct {
 						} `json:"require"`
 					} `json:"allocate"`
 				} `json:"actions"`
-			} `json:"cold"`
+			} `json:"cold,omitempty"`
 			Delete struct {
 				MinAge  string `json:"min_age"`
 				Actions struct {
@@ -98,36 +118,57 @@ type ilmPolicy struct {
 
 func ilmpolicy(index, hot, warm, cold string) ilmPolicy {
 	something := ilmPolicy{}
-	something.Policy.Phases.Hot.MinAge = "0ms"
-	something.Policy.Phases.Hot.Actions.Rollover.MaxAge = hot
+
+	if hot != "0" {
+		something.Policy.Phases.Hot.MinAge = "0ms"
+		something.Policy.Phases.Hot.Actions.Rollover.MaxAge = hot
+		something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
+	} else {
+		something.Policy.Phases.Hot.MinAge = "0ms"
+		something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
+	}
+	if warm != "0" {
+		something.Policy.Phases.Warm.MinAge = hot
+	}
 	something.Policy.Phases.Cold.MinAge = hot
 	something.Policy.Phases.Cold.Actions.Allocate.NumberOfReplicas = 0
 	something.Policy.Phases.Cold.Actions.Allocate.Require.BoxType = "cold"
 	something.Policy.Phases.Delete.MinAge = cold
+
+	j, _ := json.MarshalIndent(something, "", "    ")
+	fmt.Printf("%s\n", j)
+
 	return something
 }
 
 func (esc *ESClient) SetupIndex(c esconf) error {
-
+	ilm_pass := true
 	indices, err := esc.ec.IndexNames()
 	if err != nil {
 		return err
 	}
 	exists := grepIndexName(indices, c.Index)
 	if !exists {
-		fmt.Println("First start!")
-		ilm := ilmpolicy(c.Index, c.Ilm.Hot, c.Ilm.Warm, c.Ilm.Cold)
+		fmt.Println("First start!", c.Ilm.Enable)
+		if c.Ilm.Enable {
+			ilm := ilmpolicy(c.Index, c.Ilm.Hot, c.Ilm.Warm, c.Ilm.Cold)
 
-		ilmservice := elastic.NewXPackIlmPutLifecycleService(esc.ec)
+			ilmservice := elastic.NewXPackIlmPutLifecycleService(esc.ec)
 
-		policy_create, err := ilmservice.Policy(fmt.Sprintf("%s-ilm-policy", c.Index)).
-			BodyJson(ilm).
-			Do(context.Background())
-		if err != nil {
-			return err
+			policy_create, err := ilmservice.Policy(fmt.Sprintf("%s-ilm-policy", c.Index)).
+				BodyJson(ilm).
+				Do(context.Background())
+			if err != nil {
+				return err
+			}
+			if policy_create.Acknowledged {
+				ilm_pass = true
+			}
+		} else {
+			ilm_pass = true
 		}
-		if policy_create.Acknowledged {
-			nit := indextemplate(c.Index, c.Shards, c.Replicas)
+		if ilm_pass {
+			nit := indextemplate(c.Index, c.Shards, c.Replicas, c.Ilm.Enable)
 			templservice := elastic.NewIndicesPutTemplateService(esc.ec)
 			templ_create, err := templservice.Name(fmt.Sprintf("%s-template", c.Index)).
 				BodyJson(nit).

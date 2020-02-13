@@ -39,18 +39,20 @@ type Config struct {
 		Bulk     struct {
 			Size    int    `yaml:"size"`
 			Name    string `yaml:"name"`
+			Flush   int    `yaml:"flush"`
 			Workers int    `yaml:"workers"`
 		} `yaml:"bulk"`
 		Ilm struct {
-			Hot  string `yaml:"hot"`
-			Warm string `yaml:"warm"`
-			Cold string `yaml:"cold"`
+			Enable bool   `yaml:"enable"`
+			Hot    string `yaml:"hot,omitempty"`
+			Warm   string `yaml:"warm,omitempty"`
+			Cold   string `yaml:"cold,omitempty"`
 		} `yaml:"ilm"`
 	} `yaml:"elastic"`
 	Logging struct {
 		Enable bool   `yaml:"enable,omitempty"`
-		Path   string `yaml:"path"`
-		Size   int    `yaml:"size"`
+		Path   string `yaml:"path,omitempty"`
+		Size   int    `yaml:"size,omitempty"`
 	} `yaml:"logging"`
 }
 
@@ -93,23 +95,31 @@ func Parse(f string) Config {
 	if c.Output.Bulk.Size == 0 {
 		c.Output.Bulk.Size = 1000
 	}
+
+	if c.Output.Bulk.Flush == 0 {
+		c.Output.Bulk.Flush = 5
+	}
+
 	if c.Output.Bulk.Name == "" {
 		c.Output.Bulk.Name = "promelworker"
 	}
+
 	if c.Output.Bulk.Workers == 0 {
 		c.Output.Bulk.Workers = 1
 	}
 
-	if c.Output.Ilm.Hot == "" {
-		c.Output.Ilm.Hot = "12h"
-	}
+	if c.Output.Ilm.Enable {
+		if c.Output.Ilm.Hot == "" {
+			c.Output.Ilm.Hot = "0"
+		}
 
-	if c.Output.Ilm.Warm == "" {
-		c.Output.Ilm.Warm = "3d"
-	}
+		if c.Output.Ilm.Warm == "" {
+			c.Output.Ilm.Warm = "0"
+		}
 
-	if c.Output.Ilm.Cold == "" {
-		c.Output.Ilm.Cold = "30d"
+		if c.Output.Ilm.Cold == "" {
+			c.Output.Ilm.Cold = "0"
+		}
 	}
 
 	return c

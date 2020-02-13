@@ -15,12 +15,9 @@ require (
 	github.com/prometheus/client_golang v1.0.0
 	github.com/prometheus/common v0.9.1
 	github.com/prometheus/prometheus v2.5.0+incompatible
-	github.com/uzhinskiy/PromEL/config v0.0.0-20200211205235-d717ff33e726
-	github.com/uzhinskiy/PromEL/driver v0.0.0-20200211205235-d717ff33e726
-	github.com/uzhinskiy/PromEL/es v0.0.0-20200211205235-d717ff33e726 // indirect
-	github.com/uzhinskiy/PromEL/modules/config v0.0.1
-	github.com/uzhinskiy/PromEL/modules/driver v0.0.1
-	github.com/uzhinskiy/PromEL/modules/es v0.0.1
+	github.com/uzhinskiy/PromEL/modules/config v0.0.0
+	github.com/uzhinskiy/PromEL/modules/driver v0.0.0
+	github.com/uzhinskiy/PromEL/modules/es v0.0.0
 	google.golang.org/genproto v0.0.0-20200205142000-a86caf926a67 // indirect
 	gopkg.in/yaml.v2 v2.2.8
 )

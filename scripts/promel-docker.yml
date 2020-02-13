@@ -22,9 +22,8 @@ elastic:
     warm: 0
     cold: 3d
   bulk:
-    name: "promelworker"
     size: 1000
-	flush: 5
+    flush: 5
     workers: 2
 
 logging:

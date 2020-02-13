@@ -47,13 +47,9 @@ type promSample struct {
 }
 
 var (
-	promel_flush_invoked_total = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "promel_flush_invoked_total",
-		Help: "Number of times ES-Bulk's flush has been invoked",
-	})
 	promel_docs_indexed_speed = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "promel_docs_indexed_speed",
-		Help: "Number of requests indexed",
+		Help: "Speed of indexing documents",
 	})
 	promel_docs_indexed_failed_total = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "promel_docs_indexed_failed_total",
@@ -92,11 +88,11 @@ func NewESClient(in_cnf cnf.Config) (*ESClient, error) {
 
 func (esc *ESClient) NewBulkService() error {
 	p, err := esc.ec.BulkProcessor().
-		Name(esc.config.Bulk.Name).
+		//Name(esc.config.Bulk.Name).
 		Workers(esc.config.Bulk.Workers).
 		BulkActions(esc.config.Bulk.Size).
-		FlushInterval(5 * time.Second). // commit every 5s
-		Stats(true).                    // enable collecting stats
+		FlushInterval(time.Duration(esc.config.Bulk.Flush) * time.Second). // commit every esc.config.Bulk.Flush seconds
+		Stats(true).                                                       // enable collecting stats
 		Do(context.Background())
 	if err != nil {
 		return errors.New("Setting up BulkProcessor failed with: " + err.Error())
@@ -118,8 +114,6 @@ func (esc *ESClient) Statistics() {
 	var c float64
 	for {
 		stats := esc.bps.Stats()
-
-		promel_flush_invoked_total.Add(float64(stats.Flushed))
 
 		c = float64(stats.Indexed/5) - t
 		promel_docs_indexed_speed.Set(c)

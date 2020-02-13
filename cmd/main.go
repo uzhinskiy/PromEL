@@ -18,8 +18,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/uzhinskiy/PromEL/config"
-	"github.com/uzhinskiy/PromEL/driver"
+	"github.com/uzhinskiy/PromEL/modules/config"
+	"github.com/uzhinskiy/PromEL/modules/driver"
 )
 
 var (
@@ -31,7 +31,13 @@ var (
 
 func init() {
 	flag.StringVar(&configfile, "config", "main.yml", "Read configuration from this file")
+	flag.StringVar(&configfile, "f", "main.yml", "Read configuration from this file")
+	version := flag.Bool("V", false, "Show version")
 	flag.Parse()
+	if *version {
+		print("Build num: ", vBuild, "\n")
+		os.Exit(0)
+	}
 
 	hostname, _ = os.Hostname()
 	log.SetFlags(log.LstdFlags | log.Lshortfile)

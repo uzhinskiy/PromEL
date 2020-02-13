@@ -23,14 +23,16 @@ type esconf struct {
 	Replicas int
 	Shards   int
 	Bulk     struct {
-		Size    int
 		Name    string
+		Size    int
 		Workers int
+		Flush   int
 	}
 	Ilm struct {
-		Hot  string
-		Warm string
-		Cold string
+		Enable bool
+		Hot    string
+		Warm   string
+		Cold   string
 	}
 }
 
@@ -66,33 +68,49 @@ func riseconfig(in cnf.Config) esconf {
 	} else {
 		c.Bulk.Size = in.Output.Bulk.Size
 	}
+
+	if in.Output.Bulk.Flush == 0 {
+		c.Bulk.Flush = 5
+	} else {
+		c.Bulk.Flush = in.Output.Bulk.Flush
+	}
+
 	if in.Output.Bulk.Name == "" {
 		c.Bulk.Name = "promelworker"
 	} else {
 		c.Bulk.Name = in.Output.Bulk.Name
 	}
+
 	if in.Output.Bulk.Workers == 0 {
 		c.Bulk.Workers = 1
 	} else {
 		c.Bulk.Workers = in.Output.Bulk.Workers
 	}
 
-	if in.Output.Ilm.Hot == "" {
-		c.Ilm.Hot = "12h"
+	if !in.Output.Ilm.Enable {
+		c.Ilm.Enable = false
 	} else {
-		c.Ilm.Hot = in.Output.Ilm.Hot
+		c.Ilm.Enable = in.Output.Ilm.Enable
 	}
 
-	if in.Output.Ilm.Warm == "" {
-		c.Ilm.Warm = "3d"
-	} else {
-		c.Ilm.Warm = in.Output.Ilm.Warm
-	}
+	if c.Ilm.Enable {
+		if in.Output.Ilm.Hot == "" {
+			c.Ilm.Hot = "0"
+		} else {
+			c.Ilm.Hot = in.Output.Ilm.Hot
+		}
 
-	if in.Output.Ilm.Cold == "" {
-		c.Ilm.Cold = "30d"
-	} else {
-		c.Ilm.Cold = in.Output.Ilm.Cold
+		if in.Output.Ilm.Warm == "" {
+			c.Ilm.Warm = "0"
+		} else {
+			c.Ilm.Warm = in.Output.Ilm.Warm
+		}
+
+		if in.Output.Ilm.Cold == "" {
+			c.Ilm.Cold = "0"
+		} else {
+			c.Ilm.Cold = in.Output.Ilm.Cold
+		}
 	}
 
 	return c

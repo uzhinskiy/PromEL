@@ -11,22 +11,22 @@ input:
 
 elastic:
   hosts:
-    - http://elk01-ip:9200/
-    - http://elk0X-ip:9200/	
-  index: "promel"
-  replicas: 1
+    - http://10.220.1.140:9200/
+  index: "fuck"
+  replicas: 0
   shards: 4
   ilm:
-    enable: true
+    enable: false
     hot: 8h
     warm: 0
     cold: 3d
+	delete: 3d
   bulk:
     size: 1000
     workers: 2
     flush: 5
 
 logging:
-  enable: true
+  enable: false
   path: /var/log/promel/promel.log
   size: 10485760
