@@ -12,21 +12,22 @@ input:
 elastic:
   hosts:
     - http://elk01-ip:9200/
-    - http://elk02-ip:9200/
-    - http://elk03-ip:9200/
+    - http://elk0X-ip:9200/	
   index: "promel"
-  replicas: 1 # number of replics for index in HOT-phase
-  shards: 4 # number of shards for index in HOT-phase
+  replicas: 1
+  shards: 4
   ilm:
-    hot: 8h # Data retention time in HOT-phase
-    #warm: 1d # Data retention time in WARM-phase
-    cold: 3d # Data retention time in COLD-phase
+    enable: true
+    hot: 8h
+    warm: 0
+    cold: 3d
   bulk:
     name: "promelworker"
     size: 1000
+	flush: 5
     workers: 2
 
 logging:
-  enable: true  # for standalone - set this to TRUE, for docker - set to FALSE
+  enable: true
   path: /var/log/promel/promel.log
-  size: 10485760 #maximum size of file (bytes)
+  size: 10485760
