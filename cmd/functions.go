@@ -14,27 +14,32 @@
 package main
 
 import (
+	"runtime"
 	"syscall"
 	"time"
 )
 
 func maxOpenFiles() (rl int, err error) {
-	var rLimit syscall.Rlimit
-
-	err = syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
-	if err != nil {
+	if runtime.GOOS != "linux" {
 		return
-	}
+	} else {
+		var rLimit syscall.Rlimit
 
-	if rLimit.Cur < rLimit.Max {
-		rLimit.Cur = rLimit.Max
-		err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+		err = syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
 		if err != nil {
 			return
 		}
-		rl = int(rLimit.Cur)
+
+		if rLimit.Cur < rLimit.Max {
+			rLimit.Cur = rLimit.Max
+			err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+			if err != nil {
+				return
+			}
+			rl = int(rLimit.Cur)
+		}
+		return
 	}
-	return
 }
 
 func nowFormatTime() string {
