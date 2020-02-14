@@ -8,9 +8,22 @@ Requires Elasticsearch v7.0 or greater.
 
 ## INSTALL ##
 
+To install PromEL on Linux use the following commands:
+
     $ git clone https://github.com/uzhinskiy/PromEL.git promel
     $ cd promel
     $ make
+
+To install PromEL on Windows use the following instructions:
+* Install GO v1.11 or higher
+* Download ZIP with source files
+* Unpack this file in your prefered path
+* Run CMD.EXE
+* In CMD go to unpacked dir <SOME\PATH>\PromEL-master
+* Run :
+
+     go build -x -ldflags "-s -w -X main.vBuild=WIN" -o build/promel.exe ./cmd/
+	
 
 ## USAGE ##
 
