@@ -11,13 +11,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build linux,386 darwin,!cgo
 package main
 
 import (
-	"time"
+	"runtime"
+	"syscall"
 )
 
-func nowFormatTime() string {
-	t := time.Now().Local()
-	return t.Format("2006-01-02")
+func maxOpenFiles() (rl int, err error) {
+	if runtime.GOOS != "linux" {
+		return
+	} else {
+		var rLimit syscall.Rlimit
+
+		err = syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+		if err != nil {
+			return
+		}
+
+		if rLimit.Cur < rLimit.Max {
+			rLimit.Cur = rLimit.Max
+			err = syscall.Setrlimit(syscall.RLIMIT_NOFILE, &rLimit)
+			if err != nil {
+				return
+			}
+			rl = int(rLimit.Cur)
+		}
+		return
+	}
 }
