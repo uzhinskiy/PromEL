@@ -21,22 +21,21 @@ To install PromEL on Windows use the following instructions:
 * Run CMD.EXE
 * In CMD go to unpacked dir <SOME\PATH>\PromEL-master
 * Run :
-
-     go build -x -ldflags "-s -w -X main.vBuild=WIN" -o build/promel.exe ./cmd/
+`go build -x -ldflags "-s -w -X main.vBuild=WIN" -o build/promel.exe ./cmd/`
 	
 
 ## USAGE ##
 
 ### Standalone ###
 
-	$ sudo mkdir /var/log/promel/
-	$ sudo mkdir /etc/promel/
-	$ sudo cp ./build/promel /usr/local/sbin/promel
-	$ sudo cp ./scripts/promel.service /etc/systemd/system/
-	$ sudo cp ./scripts/promel-standalone.yml /etc/promel/promel.yml
-	$ edit /etc/promel/promel.yml (replace elk0X-ip with your actual IPs of elastic-nodes)
-	$ sudo systemctl daemon-reload && systemctl start promel
-	$ sudo systemctl enable promel
+    $ sudo mkdir /var/log/promel/
+    $ sudo mkdir /etc/promel/
+    $ sudo cp ./build/promel /usr/local/sbin/promel
+    $ sudo cp ./scripts/promel.service /etc/systemd/system/
+    $ sudo cp ./scripts/promel-standalone.yml /etc/promel/promel.yml
+    $ edit /etc/promel/promel.yml (replace elk0X-ip with your actual IPs of elastic-nodes)
+    $ sudo systemctl daemon-reload && systemctl start promel
+    $ sudo systemctl enable promel
 
 ### Docker ###
 
