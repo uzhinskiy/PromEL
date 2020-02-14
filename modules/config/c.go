@@ -42,12 +42,6 @@ type Config struct {
 			Flush   int    `yaml:"flush"`
 			Workers int    `yaml:"workers"`
 		} `yaml:"bulk"`
-		Ilm struct {
-			Enable bool   `yaml:"enable"`
-			Hot    string `yaml:"hot,omitempty"`
-			Warm   string `yaml:"warm,omitempty"`
-			Cold   string `yaml:"cold,omitempty"`
-		} `yaml:"ilm"`
 	} `yaml:"elastic"`
 	Logging struct {
 		Enable bool   `yaml:"enable,omitempty"`
@@ -106,20 +100,6 @@ func Parse(f string) Config {
 
 	if c.Output.Bulk.Workers == 0 {
 		c.Output.Bulk.Workers = 1
-	}
-
-	if c.Output.Ilm.Enable {
-		if c.Output.Ilm.Hot == "" {
-			c.Output.Ilm.Hot = "0"
-		}
-
-		if c.Output.Ilm.Warm == "" {
-			c.Output.Ilm.Warm = "0"
-		}
-
-		if c.Output.Ilm.Cold == "" {
-			c.Output.Ilm.Cold = "0"
-		}
 	}
 
 	return c

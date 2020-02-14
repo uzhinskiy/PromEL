@@ -44,16 +44,15 @@ type indexTemplate struct {
 	} `json:"mappings"`
 }
 
-func indextemplate(index string, shards, replicas int, ilm bool) indexTemplate {
+func indextemplate(index string, shards, replicas int) indexTemplate {
 	something := indexTemplate{}
 
 	something.IndexPatterns = []string{fmt.Sprintf("%s-*", index)}
 	something.Settings.Shards = shards
 	something.Settings.Replicas = replicas
-	if ilm {
-		something.Settings.IndexLifecycleName = fmt.Sprintf("%s-ilm-policy", index)
-		something.Settings.IndexLifecycleRolloverAlias = index
-	}
+	something.Settings.IndexLifecycleName = fmt.Sprintf("%s-ilm-policy", index)
+	something.Settings.IndexLifecycleRolloverAlias = index
+
 	something.Mappings.Properties.Value.Type = "long"
 	something.Mappings.Properties.Timestamp.Type = "long"
 	something.Mappings.Properties.Datetime.Type = "date"
@@ -75,35 +74,6 @@ type ilmPolicy struct {
 					} `json:"set_priority"`
 				} `json:"actions"`
 			} `json:"hot,omitempty"`
-			Warm struct {
-				MinAge  string `json:"min_age"`
-				Actions struct {
-					Allocate struct {
-						NumberOfReplicas int `json:"number_of_replicas"`
-						Require          struct {
-							BoxType string `json:"box_type"`
-						} `json:"require"`
-					} `json:"allocate"`
-					Forcemerge struct {
-						MaxNumSegments int `json:"max_num_segments"`
-					} `json:"forcemerge"`
-				} `json:"actions"`
-			} `json:"Warm,omitempty"`
-			Cold struct {
-				MinAge  string `json:"min_age"`
-				Actions struct {
-					Allocate struct {
-						NumberOfReplicas int `json:"number_of_replicas"`
-						Include          struct {
-						} `json:"include"`
-						Exclude struct {
-						} `json:"exclude"`
-						Require struct {
-							BoxType string `json:"box_type"`
-						} `json:"require"`
-					} `json:"allocate"`
-				} `json:"actions"`
-			} `json:"cold,omitempty"`
 			Delete struct {
 				MinAge  string `json:"min_age"`
 				Actions struct {
@@ -115,16 +85,13 @@ type ilmPolicy struct {
 	} `json:"policy"`
 }
 
-func ilmpolicy(index, hot, warm, cold string) ilmPolicy {
+func ilmpolicy(hot, del string) ilmPolicy {
 	something := ilmPolicy{}
 
 	something.Policy.Phases.Hot.MinAge = "0ms"
 	something.Policy.Phases.Hot.Actions.Rollover.MaxAge = hot
 	something.Policy.Phases.Hot.Actions.SetPriority.Priority = 100
-	something.Policy.Phases.Cold.MinAge = hot
-	something.Policy.Phases.Cold.Actions.Allocate.NumberOfReplicas = 0
-	something.Policy.Phases.Cold.Actions.Allocate.Require.BoxType = "cold"
-	something.Policy.Phases.Delete.MinAge = cold
+	something.Policy.Phases.Delete.MinAge = del
 
 	return something
 }
@@ -137,25 +104,21 @@ func (esc *ESClient) SetupIndex(c esconf) error {
 	}
 	exists := grepIndexName(indices, c.Index)
 	if !exists {
-		if c.Ilm.Enable {
-			ilm := ilmpolicy(c.Index, c.Ilm.Hot, c.Ilm.Warm, c.Ilm.Cold)
+		ilm := ilmpolicy("4h", "30d") // default values
 
-			ilmservice := elastic.NewXPackIlmPutLifecycleService(esc.ec)
+		ilmservice := elastic.NewXPackIlmPutLifecycleService(esc.ec)
 
-			policy_create, err := ilmservice.Policy(fmt.Sprintf("%s-ilm-policy", c.Index)).
-				BodyJson(ilm).
-				Do(context.Background())
-			if err != nil {
-				return err
-			}
-			if policy_create.Acknowledged {
-				ilm_pass = true
-			}
-		} else {
+		policy_create, err := ilmservice.Policy(fmt.Sprintf("%s-ilm-policy", c.Index)).
+			BodyJson(ilm).
+			Do(context.Background())
+		if err != nil {
+			return err
+		}
+		if policy_create.Acknowledged {
 			ilm_pass = true
 		}
 		if ilm_pass {
-			nit := indextemplate(c.Index, c.Shards, c.Replicas, c.Ilm.Enable)
+			nit := indextemplate(c.Index, c.Shards, c.Replicas)
 			templservice := elastic.NewIndicesPutTemplateService(esc.ec)
 			templ_create, err := templservice.Name(fmt.Sprintf("%s-template", c.Index)).
 				BodyJson(nit).

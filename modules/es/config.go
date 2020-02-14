@@ -28,12 +28,6 @@ type esconf struct {
 		Workers int
 		Flush   int
 	}
-	Ilm struct {
-		Enable bool
-		Hot    string
-		Warm   string
-		Cold   string
-	}
 }
 
 func riseconfig(in cnf.Config) esconf {
@@ -85,32 +79,6 @@ func riseconfig(in cnf.Config) esconf {
 		c.Bulk.Workers = 1
 	} else {
 		c.Bulk.Workers = in.Output.Bulk.Workers
-	}
-
-	if !in.Output.Ilm.Enable {
-		c.Ilm.Enable = false
-	} else {
-		c.Ilm.Enable = in.Output.Ilm.Enable
-	}
-
-	if c.Ilm.Enable {
-		if in.Output.Ilm.Hot == "" {
-			c.Ilm.Hot = "0"
-		} else {
-			c.Ilm.Hot = in.Output.Ilm.Hot
-		}
-
-		if in.Output.Ilm.Warm == "" {
-			c.Ilm.Warm = "0"
-		} else {
-			c.Ilm.Warm = in.Output.Ilm.Warm
-		}
-
-		if in.Output.Ilm.Cold == "" {
-			c.Ilm.Cold = "0"
-		} else {
-			c.Ilm.Cold = in.Output.Ilm.Cold
-		}
 	}
 
 	return c
