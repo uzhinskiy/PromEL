@@ -43,13 +43,6 @@ func init() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.SetPrefix(hostname + "\t")
 
-	mop, err := maxOpenFiles()
-	if err != nil {
-		log.Println("Bootstrap: Setting limit for open files/socket failed with: ", err)
-	} else {
-		log.Println("Bootstrap: current limit for open files/socket is ", mop)
-	}
-
 	log.Println("Bootstrap: build num.", vBuild)
 
 	cnf = config.Parse(configfile)
