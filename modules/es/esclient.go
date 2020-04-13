@@ -59,16 +59,36 @@ var (
 
 func NewESClient(in_cnf cnf.Config) (*ESClient, error) {
 	esc := &ESClient{}
+	var tmp *elastic.Client
+	var err error
 	esc.config = riseconfig(in_cnf)
 	//Подключение к Эластик
 	ehosts := esc.config.Hosts
-	tmp, err := elastic.NewClient(
-		elastic.SetURL(ehosts...),
-		elastic.SetSniff(true),
-		elastic.SetHealthcheckInterval(10*time.Second),
-		elastic.SetRetrier(initretrier()),
-		elastic.SetGzip(true),
-	)
+
+	fmt.Printf("%#v\n", esc.config)
+
+	if esc.config.SSL {
+		fmt.Println("SSL")
+		tmp, err = elastic.NewClient(
+			elastic.SetURL(ehosts...),
+			elastic.SetSniff(false),
+			elastic.SetScheme("https"),
+			elastic.SetHealthcheckInterval(10*time.Second),
+			elastic.SetRetrier(initretrier()),
+			elastic.SetGzip(true),
+		)
+
+	} else {
+		fmt.Println("NO SSL")
+		tmp, err = elastic.NewClient(
+			elastic.SetURL(ehosts...),
+			elastic.SetSniff(true),
+			elastic.SetHealthcheckInterval(10*time.Second),
+			elastic.SetRetrier(initretrier()),
+			elastic.SetGzip(true),
+		)
+
+	}
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ import (
 
 type esconf struct {
 	Hosts    []string
+	SSL      bool
 	Index    string
 	Replicas int
 	Shards   int
