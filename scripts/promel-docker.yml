@@ -13,6 +13,8 @@ elastic:
   hosts:
     - http://elk01-ip:9200/
     - http://elk0X-ip:9200/
+  ssl: false
+  cacrtfile: ca.crt
   index: "promel"
   replicas: 1
   shards: 2

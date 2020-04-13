@@ -20,6 +20,7 @@ import (
 type esconf struct {
 	Hosts    []string
 	SSL      bool
+	Cert     string
 	Index    string
 	Replicas int
 	Shards   int
@@ -38,6 +39,13 @@ func riseconfig(in cnf.Config) esconf {
 		c.Index = "promel"
 	} else {
 		c.Index = in.Output.Index
+	}
+
+	if !in.Output.SSL {
+		c.SSL = false
+	} else {
+		c.SSL = true
+		c.Cert = in.Output.Cert
 	}
 
 	if len(in.Output.Hosts) == 0 {

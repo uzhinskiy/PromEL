@@ -34,6 +34,7 @@ type Config struct {
 	Output struct {
 		Hosts    []string `yaml:"hosts"`
 		SSL      bool     `yaml:"ssl"`
+		Cert     string   `yaml:"certfile"`
 		Index    string   `yaml:"index"`
 		Replicas int      `yaml:"replicas"`
 		Shards   int      `yaml:"shards"`

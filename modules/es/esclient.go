@@ -15,9 +15,13 @@ package es
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"math"
 	"strings"
@@ -65,11 +69,31 @@ func NewESClient(in_cnf cnf.Config) (*ESClient, error) {
 	//Подключение к Эластик
 	ehosts := esc.config.Hosts
 
-	fmt.Printf("%#v\n", esc.config)
-
 	if esc.config.SSL {
-		fmt.Println("SSL")
+
+		httpClient := &http.Client{}
+
+		// Create a pool with the server certificate since it is not signed
+		// by a known CA
+		caCert, err := ioutil.ReadFile(esc.config.Cert)
+		if err != nil {
+			return nil, err
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		// Create TLS configuration with the certificate of the server
+		tlsConfig := &tls.Config{
+			RootCAs: caCertPool,
+		}
+
+		// Use the proper transport in the client
+		httpClient.Transport = &http.Transport{
+			TLSClientConfig: tlsConfig,
+		}
+
 		tmp, err = elastic.NewClient(
+			elastic.SetHttpClient(httpClient),
 			elastic.SetURL(ehosts...),
 			elastic.SetSniff(false),
 			elastic.SetScheme("https"),
@@ -79,7 +103,7 @@ func NewESClient(in_cnf cnf.Config) (*ESClient, error) {
 		)
 
 	} else {
-		fmt.Println("NO SSL")
+
 		tmp, err = elastic.NewClient(
 			elastic.SetURL(ehosts...),
 			elastic.SetSniff(true),
